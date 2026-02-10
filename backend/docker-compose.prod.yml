@@ -1,0 +1,120 @@
+# ================================================================
+# AI Video Generation Platform
+# Production Docker Compose
+# ================================================================
+
+services:
+  # ============ Redis Cache ============
+  redis:
+    image: redis:7-alpine
+    container_name: aivideo-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    mem_limit: 80m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aivideo-network
+
+  # ============ Backend API (Spring Boot) ============
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aivideo-backend
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: ${DB_HOST:-localhost}
+      DB_PORT: 3306
+      DB_NAME: aivideo
+      DB_USERNAME: aivideo
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      DATABASE_URL: jdbc:mariadb://${DB_HOST:-localhost}:3306/aivideo?useUnicode=true&characterEncoding=utf8mb4&connectionCollation=utf8mb4_unicode_ci&serverTimezone=Asia/Seoul
+      JWT_SECRET: ${JWT_SECRET:-your-production-jwt-secret-minimum-32-chars}
+      GOOGLE_CLOUD_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT_ID}
+      GEMINI_API_KEY_VIDEO: ${GEMINI_API_KEY_VIDEO}
+      # AWS S3 Configuration
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-your-s3-bucket}
+      AWS_REGION: ${AWS_REGION:-ap-southeast-2}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    mem_limit: 700m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - aivideo-network
+
+  # ============ Frontend (Next.js) ============
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: aivideo-frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8080
+      NODE_OPTIONS: "--max-old-space-size=100"
+    mem_limit: 130m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - aivideo-network
+
+  # ============ Nginx Reverse Proxy ============
+  nginx:
+    image: nginx:alpine
+    container_name: aivideo-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    mem_limit: 32m
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - aivideo-network
+
+  # ============ Adminer (DB Admin UI) ============
+  adminer:
+    image: adminer:latest
+    container_name: aivideo-adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: ${DB_HOST:-localhost}
+      ADMINER_DESIGN: nette
+    mem_limit: 50m
+    networks:
+      - aivideo-network
+
+# ============ Networks ============
+networks:
+  aivideo-network:
+    driver: bridge
+    name: aivideo-network
+
+# ============ Volumes ============
+volumes:
+  redis_data:
+    name: aivideo-redis-data

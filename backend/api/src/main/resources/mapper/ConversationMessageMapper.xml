@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.ConversationMessageMapper">
+
+    <resultMap id="ConversationMessageResultMap" type="com.aivideo.api.entity.ConversationMessage">
+        <id property="messageId" column="message_id"/>
+        <result property="conversationId" column="conversation_id"/>
+        <result property="role" column="role"/>
+        <result property="content" column="content"/>
+        <result property="messageType" column="message_type"/>
+        <result property="tokensUsed" column="tokens_used"/>
+        <result property="metadata" column="metadata"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 메시지 추가 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="messageId" parameterType="com.aivideo.api.entity.ConversationMessage">
+        INSERT INTO conversation_messages (
+            conversation_id,
+            role,
+            content,
+            message_type,
+            tokens_used,
+            metadata
+        ) VALUES (
+            #{conversationId},
+            #{role},
+            #{content},
+            #{messageType},
+            #{tokensUsed},
+            #{metadata}
+        )
+    </insert>
+
+    <!-- 대화 ID로 메시지 목록 조회 (시간순 정렬) -->
+    <select id="findByConversationId" resultMap="ConversationMessageResultMap">
+        SELECT * FROM conversation_messages
+        WHERE conversation_id = #{conversationId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 대화의 메시지 수 조회 -->
+    <select id="countByConversationId" resultType="int">
+        SELECT COUNT(*) FROM conversation_messages
+        WHERE conversation_id = #{conversationId}
+    </select>
+
+    <!-- 대화 ID로 모든 메시지 삭제 -->
+    <delete id="deleteByConversationId">
+        DELETE FROM conversation_messages
+        WHERE conversation_id = #{conversationId}
+    </delete>
+
+</mapper>

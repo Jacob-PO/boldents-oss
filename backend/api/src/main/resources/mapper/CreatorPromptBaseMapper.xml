@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    크리에이터 프롬프트 Base 템플릿 매퍼
+    v2.9.152: 2단계 프롬프트 아키텍처 - Layer 1 (Base 템플릿)
+-->
+<mapper namespace="com.aivideo.api.mapper.CreatorPromptBaseMapper">
+
+    <!-- ResultMap: creator_prompt_base 테이블 매핑 -->
+    <resultMap id="CreatorPromptBaseResultMap" type="com.aivideo.api.entity.CreatorPromptBase">
+        <id property="baseId" column="base_id"/>
+        <result property="promptType" column="prompt_type"/>
+        <result property="baseTemplate" column="base_template"/>
+        <result property="description" column="description"/>
+        <result property="requiredPlaceholders" column="required_placeholders"/>
+        <result property="version" column="version"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 프롬프트 타입으로 Base 템플릿 조회 (활성화된 것만) -->
+    <select id="findByPromptType" resultMap="CreatorPromptBaseResultMap">
+        SELECT base_id, prompt_type, base_template, description,
+               required_placeholders, version, is_active,
+               created_at, updated_at
+        FROM creator_prompt_base
+        WHERE prompt_type = #{promptType}
+          AND is_active = TRUE
+    </select>
+
+    <!-- 모든 활성화된 Base 템플릿 조회 -->
+    <select id="findAllActive" resultMap="CreatorPromptBaseResultMap">
+        SELECT base_id, prompt_type, base_template, description,
+               required_placeholders, version, is_active,
+               created_at, updated_at
+        FROM creator_prompt_base
+        WHERE is_active = TRUE
+        ORDER BY prompt_type
+    </select>
+
+    <!-- Base ID로 조회 -->
+    <select id="findById" resultMap="CreatorPromptBaseResultMap">
+        SELECT base_id, prompt_type, base_template, description,
+               required_placeholders, version, is_active,
+               created_at, updated_at
+        FROM creator_prompt_base
+        WHERE base_id = #{baseId}
+    </select>
+
+</mapper>

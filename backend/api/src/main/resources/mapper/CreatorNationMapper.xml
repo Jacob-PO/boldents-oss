@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+       "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.CreatorNationMapper">
+
+    <!-- v2.9.174: 해외 버추얼 크리에이터 지원 - 국가/언어 정보 -->
+    <resultMap id="CreatorNationResultMap" type="com.aivideo.api.entity.CreatorNation">
+        <id property="nationCode" column="nation_code"/>
+        <result property="nationName" column="nation_name"/>
+        <result property="nationNameEn" column="nation_name_en"/>
+        <result property="languageCode" column="language_code"/>
+        <result property="languageName" column="language_name"/>
+        <result property="ttsCharsPerSecond" column="tts_chars_per_second"/>
+        <result property="maxCharsPerLine" column="max_chars_per_line"/>
+        <result property="isActive" column="is_active"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findByCode" resultMap="CreatorNationResultMap">
+        SELECT * FROM creator_nation
+        WHERE nation_code = #{nationCode}
+    </select>
+
+    <select id="findAllActive" resultMap="CreatorNationResultMap">
+        SELECT * FROM creator_nation
+        WHERE is_active = TRUE
+        ORDER BY display_order ASC
+    </select>
+
+</mapper>

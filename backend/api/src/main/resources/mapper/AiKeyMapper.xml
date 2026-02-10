@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aivideo.api.mapper.AiKeyMapper">
+
+    <resultMap id="AiKeyResultMap" type="com.aivideo.api.entity.AiKey">
+        <id property="aiKeyId" column="ai_key_id"/>
+        <result property="provider" column="provider"/>
+        <result property="accountEmail" column="account_email"/>
+        <result property="projectName" column="project_name"/>
+        <result property="apiKey" column="api_key"/>
+        <result property="priority" column="priority"/>
+        <result property="isActive" column="is_active"/>
+        <result property="lastUsedAt" column="last_used_at"/>
+        <result property="lastErrorAt" column="last_error_at"/>
+        <result property="errorCount" column="error_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 활성화된 API 키 목록 조회 (우선순위 순) -->
+    <select id="findActiveKeysByProvider" resultMap="AiKeyResultMap">
+        SELECT * FROM ai_key
+        WHERE provider = #{provider}
+          AND is_active = TRUE
+        ORDER BY priority ASC, error_count ASC
+    </select>
+
+    <!-- 모든 API 키 목록 조회 -->
+    <select id="findAll" resultMap="AiKeyResultMap">
+        SELECT * FROM ai_key
+        ORDER BY provider, priority ASC
+    </select>
+
+    <!-- ID로 API 키 조회 -->
+    <select id="findById" resultMap="AiKeyResultMap">
+        SELECT * FROM ai_key WHERE ai_key_id = #{aiKeyId}
+    </select>
+
+    <!-- API 키 저장 -->
+    <insert id="insert" parameterType="com.aivideo.api.entity.AiKey" useGeneratedKeys="true" keyProperty="aiKeyId">
+        INSERT INTO ai_key (provider, account_email, project_name, api_key, priority, is_active)
+        VALUES (#{provider}, #{accountEmail}, #{projectName}, #{apiKey}, #{priority}, #{isActive})
+    </insert>
+
+    <!-- API 키 업데이트 -->
+    <update id="update" parameterType="com.aivideo.api.entity.AiKey">
+        UPDATE ai_key
+        SET provider = #{provider},
+            account_email = #{accountEmail},
+            project_name = #{projectName},
+            api_key = #{apiKey},
+            priority = #{priority},
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE ai_key_id = #{aiKeyId}
+    </update>
+
+    <!-- 마지막 사용 시간 업데이트 -->
+    <update id="updateLastUsed">
+        UPDATE ai_key
+        SET last_used_at = NOW(),
+            updated_at = NOW()
+        WHERE ai_key_id = #{aiKeyId}
+    </update>
+
+    <!-- 에러 발생 기록 -->
+    <update id="incrementErrorCount">
+        UPDATE ai_key
+        SET error_count = error_count + 1,
+            last_error_at = NOW(),
+            updated_at = NOW()
+        WHERE ai_key_id = #{aiKeyId}
+    </update>
+
+    <!-- 에러 카운트 리셋 (성공 시) -->
+    <update id="resetErrorCount">
+        UPDATE ai_key
+        SET error_count = 0,
+            updated_at = NOW()
+        WHERE ai_key_id = #{aiKeyId}
+    </update>
+
+    <!-- API 키 비활성화 -->
+    <update id="deactivate">
+        UPDATE ai_key
+        SET is_active = FALSE,
+            updated_at = NOW()
+        WHERE ai_key_id = #{aiKeyId}
+    </update>
+
+    <!-- API 키 활성화 -->
+    <update id="activate">
+        UPDATE ai_key
+        SET is_active = TRUE,
+            error_count = 0,
+            updated_at = NOW()
+        WHERE ai_key_id = #{aiKeyId}
+    </update>
+
+    <!-- API 키 삭제 -->
+    <delete id="delete">
+        DELETE FROM ai_key WHERE ai_key_id = #{aiKeyId}
+    </delete>
+
+</mapper>

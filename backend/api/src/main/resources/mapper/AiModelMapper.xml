@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aivideo.api.mapper.AiModelMapper">
+
+    <resultMap id="AiModelResultMap" type="com.aivideo.api.entity.AiModel">
+        <id property="tierId" column="tier_id"/>
+        <result property="tierCode" column="tier_code"/>
+        <result property="tierName" column="tier_name"/>
+        <result property="description" column="description"/>
+        <result property="imageModel" column="image_model"/>
+        <result property="videoModel" column="video_model"/>
+        <result property="ttsModel" column="tts_model"/>
+        <result property="scenarioModel" column="scenario_model"/>
+        <result property="fallbackImageModel" column="fallback_image_model"/>
+        <result property="fallbackVideoModel" column="fallback_video_model"/>
+        <result property="fallbackTtsModel" column="fallback_tts_model"/>
+        <result property="fallbackScenarioModel" column="fallback_scenario_model"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 티어 ID로 조회 -->
+    <select id="findById" resultMap="AiModelResultMap">
+        SELECT * FROM ai_model WHERE tier_id = #{tierId}
+    </select>
+
+    <!-- 티어 코드로 조회 -->
+    <select id="findByCode" resultMap="AiModelResultMap">
+        SELECT * FROM ai_model WHERE tier_code = #{tierCode} AND is_active = TRUE
+    </select>
+
+</mapper>

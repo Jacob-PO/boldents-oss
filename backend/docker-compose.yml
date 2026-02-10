@@ -1,0 +1,47 @@
+# ================================================================
+# AI Video Generation Platform
+# Docker Compose Configuration (Local Development)
+# ================================================================
+
+services:
+  # ============ Redis Cache ============
+  redis:
+    image: redis:7-alpine
+    container_name: aivideo-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aivideo-network
+
+  # ============ Adminer (DB Admin UI) ============
+  adminer:
+    image: adminer:latest
+    container_name: aivideo-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: ${DB_HOST:-mariadb}
+      ADMINER_DESIGN: nette
+    networks:
+      - aivideo-network
+
+# ============ Networks ============
+networks:
+  aivideo-network:
+    driver: bridge
+    name: aivideo-network
+
+# ============ Volumes ============
+volumes:
+  redis_data:
+    name: aivideo-redis-data

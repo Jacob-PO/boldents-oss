@@ -1,0 +1,224 @@
+spring:
+  profiles:
+    active: local
+  application:
+    name: aivideo-api
+  # v2.9.87: 이미지 업로드 크기 제한 (최대 5장 x 10MB)
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 60MB
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:aivideo}?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME:aivideo}
+    password: ${DB_PASSWORD:changeme}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# MyBatis
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.aivideo.api.dto
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# SQL Logging
+logging:
+  level:
+    org.apache.ibatis: DEBUG
+    org.mybatis: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.mariadb.jdbc: DEBUG
+
+# AI Service Configuration (v2.8.4)
+# 장르별 모델은 DB에서 관리 (genres 테이블)
+# - image_model, video_model, tts_model, fallback_image_model
+# 아래 설정은 레거시 호환용으로만 유지
+ai:
+  tier:
+    standard:  # (레거시 - 실제 사용 안 함, DB 우선)
+      scenario-model: gemini-3-flash-preview  # 시나리오 생성에만 사용
+      video-model: veo-2.0-generate-001  # 레거시 호환용 (실제: DB에서 조회)
+      video-resolution: 720p  # 레거시 호환용
+      tts-provider: gemini
+    premium:
+      scenario-model: gemini-3-flash-preview  # 시나리오 생성에만 사용
+      video-model: veo-3.1-generate-preview  # 레거시 호환용 (실제: DB에서 조회)
+      video-resolution: 1080p  # 레거시 호환용
+      tts-provider: gemini
+
+# Video Composition
+video:
+  opening:
+    default-duration: 8  # Veo 3.1 API 고정 (8초)
+    max-duration: 148
+  slide:
+    default-duration: 5
+    transitions: fade,slide,zoom
+  bgm:
+    enabled: true
+    default-volume: 0.3
+
+# v2.9.13: API Rate Limiting - DB 기반 관리 (api_rate_limits, api_batch_settings 테이블)
+# 아래 설정은 DB 테이블이 없을 때 폴백용으로만 사용
+# 실제 운영에서는 DB 테이블에서 조회하므로 이 값들은 사용되지 않음
+api:
+  rate-limit:
+    tts-delay-ms: 6000           # TTS: 10 RPM 기준 6초
+    image-batch-delay-ms: 3000   # 이미지 배치: 3초
+    image-intra-batch-delay-ms: 3000  # 이미지: 20 RPM 기준 3초
+    initial-backoff-ms: 5000     # 재시도 초기 백오프
+    max-backoff-ms: 60000        # 재시도 최대 백오프
+    max-overload-retries: 5      # 503 최대 재시도
+
+# AWS S3 Configuration (임시 파일 저장소)
+aws:
+  s3:
+    enabled: false
+    bucket: ${AWS_S3_BUCKET:your-s3-bucket}
+    region: ${AWS_REGION:ap-southeast-2}
+    presigned-url-expiration: 10800
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+# Google Cloud
+google:
+  cloud:
+    project-id: ${GOOGLE_CLOUD_PROJECT_ID:your-gcp-project-id}
+    credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
+
+# API Key Encryption
+api-key:
+  encryption-secret: ${API_KEY_ENCRYPTION_SECRET:change-this-encryption-key-32chars}
+
+# Swagger
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+---
+# ============ Production Profile (AWS EC2 + MariaDB) ============
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+  # prod profile requires environment variables for DB connection
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${DB_HOST}:${DB_PORT:3306}/${DB_NAME:aivideo}?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.aivideo.api.dto
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+
+ai:
+  tier:
+    standard:  # (레거시 - 실제 사용 안 함, DB 우선)
+      scenario-model: gemini-3-flash-preview  # 시나리오 생성에만 사용
+      video-model: veo-2.0-generate-001  # 레거시 호환용 (실제: DB에서 조회)
+      video-resolution: 720p  # 레거시 호환용
+      tts-provider: gemini
+    premium:
+      scenario-model: gemini-3-flash-preview  # 시나리오 생성에만 사용
+      video-model: veo-3.1-generate-preview  # 레거시 호환용 (실제: DB에서 조회)
+      video-resolution: 1080p  # 레거시 호환용
+      tts-provider: gemini
+
+video:
+  opening:
+    default-duration: 8  # Veo 3.1 API 고정 (8초)
+    max-duration: 148
+  slide:
+    default-duration: 10  # 슬라이드 기본 10초
+    transitions: fade,slide,zoom
+  bgm:
+    enabled: true
+    default-volume: 0.3
+
+# v2.9.11: API Rate Limiting 설정
+api:
+  rate-limit:
+    tts-delay-ms: 15000
+    image-batch-delay-ms: 15000
+    image-intra-batch-delay-ms: 6000
+    initial-backoff-ms: 5000
+    max-backoff-ms: 60000
+    max-overload-retries: 5
+
+aws:
+  s3:
+    enabled: true
+    bucket: ${AWS_S3_BUCKET:your-s3-bucket}
+    region: ${AWS_REGION:ap-southeast-2}
+    presigned-url-expiration: 10800
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+
+google:
+  cloud:
+    project-id: ${GOOGLE_CLOUD_PROJECT_ID}
+    credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
+
+# API Key Encryption
+api-key:
+  encryption-secret: ${API_KEY_ENCRYPTION_SECRET:change-this-encryption-key-32chars}
+
+springdoc:
+  swagger-ui:
+    enabled: false

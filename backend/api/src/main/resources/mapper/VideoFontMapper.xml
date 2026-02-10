@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+       "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.VideoFontMapper">
+
+    <!-- v2.9.174: 해외 버추얼 크리에이터 지원 - 폰트 관리 -->
+    <resultMap id="VideoFontResultMap" type="com.aivideo.api.entity.VideoFont">
+        <id property="fontId" column="font_id"/>
+        <result property="fontCode" column="font_code"/>
+        <result property="fontName" column="font_name"/>
+        <result property="fontNameDisplay" column="font_name_display"/>
+        <result property="fontFileName" column="font_file_name"/>
+        <result property="nationCode" column="nation_code"/>
+        <result property="description" column="description"/>
+        <result property="isDefault" column="is_default"/>
+        <result property="isActive" column="is_active"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="VideoFontResultMap">
+        SELECT * FROM video_font
+        WHERE font_id = #{fontId}
+    </select>
+
+    <select id="findByNationCode" resultMap="VideoFontResultMap">
+        SELECT * FROM video_font
+        WHERE nation_code = #{nationCode} AND is_active = TRUE
+        ORDER BY display_order ASC
+    </select>
+
+    <select id="findDefaultByNationCode" resultMap="VideoFontResultMap">
+        SELECT * FROM video_font
+        WHERE nation_code = #{nationCode} AND is_default = TRUE AND is_active = TRUE
+        LIMIT 1
+    </select>
+
+    <select id="findAllActive" resultMap="VideoFontResultMap">
+        SELECT * FROM video_font
+        WHERE is_active = TRUE
+        ORDER BY nation_code ASC, display_order ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,112 @@
+# ================================================================
+# AI Video Platform CI/CD - GitHub Actions Auto Deploy
+# main 브랜치 push 시 프론트엔드 + 백엔드 동시 배포
+#
+# v2.9.68: Artifact 사용 제거 - 단일 Job에서 빌드 후 직접 SCP 전송
+#          GitHub Artifact 저장소 용량 문제 해결
+# ================================================================
+
+name: Deploy AI Video Generator
+
+on:
+  push:
+    branches: [main]
+
+  # 수동 실행 가능
+  workflow_dispatch:
+
+jobs:
+  # ============================================================
+  # 단일 Job: 빌드 + 배포 (Artifact 없이)
+  # ============================================================
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Backend JAR
+        run: |
+          cd backend
+          ./gradlew :api:bootJar -x test --no-daemon
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy JAR to EC2 via SCP
+        run: |
+          scp -o StrictHostKeyChecking=no backend/api/build/libs/api-0.0.1-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/api-0.0.1-SNAPSHOT.jar
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 15m
+          script: |
+            set -e
+            echo "========== CI/CD Deploy Start =========="
+
+            # 1. Backend 배포 (JAR은 이미 SCP로 전송됨)
+            echo "[1/4] Backend 배포..."
+            docker cp ~/api-0.0.1-SNAPSHOT.jar aivideo-backend:/app/app.jar
+            docker restart aivideo-backend
+            rm -f ~/api-0.0.1-SNAPSHOT.jar
+
+            # 2. Frontend 코드 업데이트
+            echo "[2/4] Frontend 코드 업데이트..."
+            cd ~/app
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 3. Frontend 빌드 및 배포
+            echo "[3/4] Frontend 빌드 및 배포..."
+            cd frontend
+            docker build -t aivideo-frontend . --quiet
+            docker rm -f aivideo-frontend 2>/dev/null || true
+            sleep 3
+            docker run -d --name aivideo-frontend \
+              --network aivideo-network \
+              --restart always \
+              --memory=180m \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              aivideo-frontend
+
+            # 4. 디스크 정리 및 상태 확인
+            echo "[4/4] 정리 및 상태 확인..."
+            docker image prune -af --filter "until=24h" > /dev/null 2>&1 || true
+            docker builder prune -af > /dev/null 2>&1 || true
+
+            # 서비스 시작 대기
+            sleep 10
+
+            echo ""
+            echo "========== 배포 완료 =========="
+            docker ps --format "table {{.Names}}\t{{.Status}}" | grep aivideo
+            echo ""
+            echo "디스크 사용량:"
+            df -h / | tail -1

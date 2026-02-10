@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.CreatorMapper">
+
+    <!--
+    컬럼 순서: 중요도와 프롬프트 작성 순서에 맞게 정렬
+
+    [PK]
+    [기본 정보] - 크리에이터 핵심 정보
+    [UI 설정] - 홈 화면 표시 정보
+    [시스템 설정] - 내부 시스템 설정
+    [메타데이터]
+
+    v2.9.142: 컬럼 순서 재배치 (중요도/작성순서 기준)
+    v2.9.142: creator_birth, youtube_channel 필드 추가
+    -->
+    <resultMap id="CreatorResultMap" type="com.aivideo.api.entity.Creator">
+        <!-- [PK] -->
+        <id property="creatorId" column="creator_id"/>
+
+        <!-- [기본 정보] -->
+        <result property="creatorCode" column="creator_code"/>
+        <result property="creatorName" column="creator_name"/>
+        <result property="creatorBirth" column="creator_birth"/>
+        <result property="youtubeChannel" column="youtube_channel"/>
+
+        <!-- [UI 설정] -->
+        <result property="description" column="description"/>
+        <result property="placeholderText" column="placeholder_text"/>
+
+        <!-- [시스템 설정] -->
+        <result property="isActive" column="is_active"/>
+        <result property="modelTierId" column="model_tier_id"/>
+        <result property="nationCode" column="nation_code"/>
+
+        <!-- [메타데이터] -->
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 크리에이터 ID로 조회 -->
+    <select id="findById" resultMap="CreatorResultMap">
+        SELECT * FROM creators
+        WHERE creator_id = #{creatorId}
+    </select>
+
+    <!-- 크리에이터 코드로 조회 -->
+    <select id="findByCode" resultMap="CreatorResultMap">
+        SELECT * FROM creators
+        WHERE creator_code = #{creatorCode}
+    </select>
+
+    <!-- 활성화된 모든 크리에이터 조회 -->
+    <!-- v2.9.126: display_order 삭제로 creator_id 정렬 -->
+    <select id="findAllActive" resultMap="CreatorResultMap">
+        SELECT * FROM creators
+        WHERE is_active = TRUE
+        ORDER BY creator_id ASC
+    </select>
+
+    <!-- v2.9.127: findAllShowOnHome 삭제 (showOnHome이 isActive로 통합됨) -->
+    <!-- 홈 화면에 노출되는 크리에이터는 findAllActive()로 조회 -->
+
+    <!-- 모든 크리에이터 조회 -->
+    <!-- v2.9.126: display_order 삭제로 creator_id 정렬 -->
+    <select id="findAll" resultMap="CreatorResultMap">
+        SELECT * FROM creators
+        ORDER BY creator_id ASC
+    </select>
+
+    <!-- 크리에이터 생성 - v2.9.142: 컬럼 순서 재배치 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="creatorId" parameterType="com.aivideo.api.entity.Creator">
+        INSERT INTO creators (
+            <!-- [기본 정보] -->
+            creator_code, creator_name, creator_birth, youtube_channel,
+            <!-- [UI 설정] -->
+            description, placeholder_text,
+            <!-- [시스템 설정] -->
+            is_active, model_tier_id, nation_code
+        ) VALUES (
+            #{creatorCode}, #{creatorName}, #{creatorBirth}, #{youtubeChannel},
+            #{description}, #{placeholderText},
+            #{isActive}, #{modelTierId}, #{nationCode}
+        )
+    </insert>
+
+    <!-- 크리에이터 수정 - v2.9.142: 전체 필드 업데이트 지원 -->
+    <update id="update" parameterType="com.aivideo.api.entity.Creator">
+        UPDATE creators SET
+            <!-- [기본 정보] -->
+            creator_code = #{creatorCode},
+            creator_name = #{creatorName},
+            creator_birth = #{creatorBirth},
+            youtube_channel = #{youtubeChannel},
+            <!-- [UI 설정] -->
+            description = #{description},
+            placeholder_text = #{placeholderText},
+            <!-- [시스템 설정] -->
+            is_active = #{isActive},
+            model_tier_id = #{modelTierId},
+            nation_code = #{nationCode},
+            <!-- [메타데이터] -->
+            updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- 크리에이터 활성화/비활성화 -->
+    <update id="updateActive">
+        UPDATE creators SET
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+</mapper>

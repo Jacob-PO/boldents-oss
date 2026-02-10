@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aivideo.api.mapper.ApiRateLimitMapper">
+
+    <!-- v2.9.13: API Rate Limit 매퍼 XML -->
+
+    <resultMap id="ApiRateLimitResultMap" type="com.aivideo.api.entity.ApiRateLimit">
+        <id property="limitId" column="limit_id"/>
+        <result property="apiType" column="api_type"/>
+        <result property="modelName" column="model_name"/>
+        <result property="tier" column="tier"/>
+        <result property="rpm" column="rpm"/>
+        <result property="rpd" column="rpd"/>
+        <result property="tpm" column="tpm"/>
+        <result property="ipm" column="ipm"/>
+        <result property="minDelayMs" column="min_delay_ms"/>
+        <result property="maxDelayMs" column="max_delay_ms"/>
+        <result property="initialDelayMs" column="initial_delay_ms"/>
+        <result property="successDecreaseRatio" column="success_decrease_ratio"/>
+        <result property="errorIncreaseRatio" column="error_increase_ratio"/>
+        <result property="successStreakForDecrease" column="success_streak_for_decrease"/>
+        <result property="maxRetries" column="max_retries"/>
+        <result property="initialBackoffMs" column="initial_backoff_ms"/>
+        <result property="maxBackoffMs" column="max_backoff_ms"/>
+        <result property="description" column="description"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ApiBatchSettingsResultMap" type="com.aivideo.api.entity.ApiBatchSettings">
+        <id property="settingId" column="setting_id"/>
+        <result property="apiType" column="api_type"/>
+        <result property="batchSize" column="batch_size"/>
+        <result property="batchDelayMs" column="batch_delay_ms"/>
+        <result property="maxConsecutiveErrors" column="max_consecutive_errors"/>
+        <result property="errorBackoffMs" column="error_backoff_ms"/>
+        <result property="description" column="description"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- Rate Limit 조회 -->
+    <select id="findByModelAndTier" resultMap="ApiRateLimitResultMap">
+        SELECT * FROM api_rate_limits
+        WHERE model_name = #{modelName}
+          AND tier = #{tier}
+          AND is_active = TRUE
+    </select>
+
+    <select id="findByApiTypeAndModel" resultMap="ApiRateLimitResultMap">
+        SELECT * FROM api_rate_limits
+        WHERE api_type = #{apiType}
+          AND model_name = #{modelName}
+          AND is_active = TRUE
+        LIMIT 1
+    </select>
+
+    <select id="findByApiType" resultMap="ApiRateLimitResultMap">
+        SELECT * FROM api_rate_limits
+        WHERE api_type = #{apiType}
+          AND is_active = TRUE
+        ORDER BY model_name
+    </select>
+
+    <select id="findAllActive" resultMap="ApiRateLimitResultMap">
+        SELECT * FROM api_rate_limits
+        WHERE is_active = TRUE
+        ORDER BY api_type, model_name
+    </select>
+
+    <!-- Batch Settings 조회 -->
+    <select id="findBatchSettingsByApiType" resultMap="ApiBatchSettingsResultMap">
+        SELECT * FROM api_batch_settings
+        WHERE api_type = #{apiType}
+          AND is_active = TRUE
+    </select>
+
+    <select id="findAllBatchSettings" resultMap="ApiBatchSettingsResultMap">
+        SELECT * FROM api_batch_settings
+        WHERE is_active = TRUE
+        ORDER BY api_type
+    </select>
+
+    <!-- Rate Limit 수정 -->
+    <update id="updateDelaySettings">
+        UPDATE api_rate_limits
+        SET min_delay_ms = #{minDelayMs},
+            max_delay_ms = #{maxDelayMs},
+            initial_delay_ms = #{initialDelayMs},
+            updated_at = NOW()
+        WHERE limit_id = #{limitId}
+    </update>
+
+    <update id="updateRpm">
+        UPDATE api_rate_limits
+        SET rpm = #{rpm},
+            updated_at = NOW()
+        WHERE limit_id = #{limitId}
+    </update>
+
+</mapper>

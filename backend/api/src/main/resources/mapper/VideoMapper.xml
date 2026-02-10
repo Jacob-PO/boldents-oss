@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aivideo.api.mapper.VideoMapper">
+
+    <resultMap id="VideoResultMap" type="com.aivideo.api.entity.Video">
+        <id property="videoId" column="video_id"/>
+        <result property="userNo" column="user_no"/>
+        <result property="creatorId" column="creator_id"/>
+        <result property="formatId" column="format_id"/>
+        <result property="videoSubtitleId" column="video_subtitle_id"/>
+        <result property="fontSizeLevel" column="font_size_level"/>
+        <result property="subtitlePosition" column="subtitle_position"/>
+        <result property="thumbnailId" column="thumbnail_id"/>
+        <result property="fontId" column="font_id"/>
+        <result property="conversationId" column="conversation_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="prompt" column="prompt"/>
+        <result property="contentType" column="content_type"/>
+        <result property="qualityTier" column="quality_tier"/>
+        <result property="hookType" column="hook_type"/>
+        <result property="status" column="status"/>
+        <result property="progress" column="progress"/>
+        <result property="currentStep" column="current_step"/>
+        <result property="duration" column="duration"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="videoUrl" column="video_url"/>
+        <result property="openingUrl" column="opening_url"/>
+        <result property="finalVideoUrl" column="final_video_url"/>
+        <result property="presignedUrlExpiresAt" column="presigned_url_expires_at"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="completedAt" column="completed_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="videoId">
+        INSERT INTO videos (user_no, creator_id, format_id, video_subtitle_id, font_size_level, subtitle_position, thumbnail_id, font_id, conversation_id, title, description, prompt, content_type, quality_tier, hook_type, status, progress, current_step, duration)
+        VALUES (#{userNo}, #{creatorId}, #{formatId}, #{videoSubtitleId}, #{fontSizeLevel}, #{subtitlePosition}, #{thumbnailId}, #{fontId}, #{conversationId}, #{title}, #{description}, #{prompt}, #{contentType}, #{qualityTier}, #{hookType}, #{status}, #{progress}, #{currentStep}, #{duration})
+    </insert>
+
+    <!-- v2.9.25: 영상 포맷 업데이트 -->
+    <update id="updateFormatId">
+        UPDATE videos
+        SET format_id = #{formatId}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <select id="findById" resultMap="VideoResultMap">
+        SELECT * FROM videos WHERE video_id = #{videoId} AND deleted_at IS NULL
+    </select>
+
+    <select id="findByUserNo" resultMap="VideoResultMap">
+        SELECT * FROM videos
+        WHERE user_no = #{userNo} AND deleted_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findByConversationId" resultMap="VideoResultMap">
+        SELECT * FROM videos
+        WHERE conversation_id = #{conversationId} AND deleted_at IS NULL
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- v2.9.48: SELECT FOR UPDATE (Race condition 방지 - 썸네일 중복 생성 차단) -->
+    <select id="findByConversationIdForUpdate" resultMap="VideoResultMap">
+        SELECT * FROM videos
+        WHERE conversation_id = #{conversationId} AND deleted_at IS NULL
+        ORDER BY created_at DESC
+        FOR UPDATE
+    </select>
+
+    <update id="updateStatus">
+        UPDATE videos
+        SET status = #{status}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="updateProgress">
+        UPDATE videos
+        SET progress = #{progress}, current_step = #{currentStep}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="updateVideoUrl">
+        UPDATE videos
+        SET video_url = #{videoUrl}, thumbnail_url = #{thumbnailUrl}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="updateAsCompleted">
+        UPDATE videos
+        SET status = 'COMPLETED', progress = 100, final_video_url = #{videoUrl}, thumbnail_url = #{thumbnailUrl},
+            completed_at = NOW(), updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="updateAsFailed">
+        UPDATE videos
+        SET status = 'FAILED', error_message = #{errorMessage}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="delete">
+        UPDATE videos SET deleted_at = NOW(), updated_at = NOW() WHERE video_id = #{videoId}
+    </update>
+
+    <!-- v2.9.13: N+1 쿼리 방지용 일괄 soft delete -->
+    <update id="deleteByIdsBatch">
+        UPDATE videos SET deleted_at = NOW(), updated_at = NOW()
+        WHERE video_id IN
+        <foreach collection="videoIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="countByUserNo" resultType="int">
+        SELECT COUNT(*) FROM videos WHERE user_no = #{userNo} AND deleted_at IS NULL
+    </select>
+
+    <update id="updateCreatorId">
+        UPDATE videos
+        SET creator_id = #{creatorId}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <!-- v2.9.38: presigned URL 만료 시간 업데이트 -->
+    <update id="updatePresignedUrlExpiresAt">
+        UPDATE videos
+        SET presigned_url_expires_at = #{expiresAt}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <!-- v2.9.43: 썸네일 URL만 업데이트 (최종 영상에 포함하기 위함) -->
+    <update id="updateThumbnailUrl">
+        UPDATE videos
+        SET thumbnail_url = #{thumbnailUrl}, updated_at = NOW()
+        WHERE video_id = #{videoId}
+    </update>
+
+    <!-- v2.9.172: 썸네일 URL이 NULL일 때만 업데이트 (레이스 컨디션 방지) -->
+    <update id="updateThumbnailUrlIfNull">
+        UPDATE videos
+        SET thumbnail_url = #{thumbnailUrl}, updated_at = NOW()
+        WHERE video_id = #{videoId} AND (thumbnail_url IS NULL OR thumbnail_url = '')
+    </update>
+</mapper>

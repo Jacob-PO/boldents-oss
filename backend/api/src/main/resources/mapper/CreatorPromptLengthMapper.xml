@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.CreatorPromptLengthMapper">
+
+    <!--
+    크리에이터별 길이 설정 ResultMap
+    v2.9.155: 길이 관련 설정을 별도 테이블에서 중앙 관리
+    -->
+    <resultMap id="CreatorPromptLengthResultMap" type="com.aivideo.api.entity.CreatorPromptLength">
+        <id property="creatorId" column="creator_id"/>
+
+        <!-- 썸네일 관련 -->
+        <result property="thumbnailHookLength" column="thumbnail_hook_length"/>
+
+        <!-- 유튜브 메타데이터 관련 -->
+        <result property="youtubeTitleMinLength" column="youtube_title_min_length"/>
+        <result property="youtubeTitleMaxLength" column="youtube_title_max_length"/>
+        <result property="youtubeDescriptionMinLength" column="youtube_description_min_length"/>
+        <result property="youtubeDescriptionMaxLength" column="youtube_description_max_length"/>
+
+        <!-- 나레이션 관련 -->
+        <result property="openingNarrationLength" column="opening_narration_length"/>
+        <result property="slideNarrationLength" column="slide_narration_length"/>
+        <result property="narrationExpandLength" column="narration_expand_length"/>
+
+        <!-- 메타데이터 -->
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 크리에이터 ID로 조회 -->
+    <select id="findByCreatorId" resultMap="CreatorPromptLengthResultMap">
+        SELECT * FROM creator_prompts_length WHERE creator_id = #{creatorId}
+    </select>
+
+    <!-- UPSERT -->
+    <insert id="upsert" parameterType="com.aivideo.api.entity.CreatorPromptLength">
+        INSERT INTO creator_prompts_length (
+            creator_id,
+            thumbnail_hook_length,
+            youtube_title_min_length,
+            youtube_title_max_length,
+            youtube_description_min_length,
+            youtube_description_max_length,
+            opening_narration_length,
+            slide_narration_length,
+            narration_expand_length
+        ) VALUES (
+            #{creatorId},
+            #{thumbnailHookLength},
+            #{youtubeTitleMinLength},
+            #{youtubeTitleMaxLength},
+            #{youtubeDescriptionMinLength},
+            #{youtubeDescriptionMaxLength},
+            #{openingNarrationLength},
+            #{slideNarrationLength},
+            #{narrationExpandLength}
+        )
+        ON DUPLICATE KEY UPDATE
+            thumbnail_hook_length = COALESCE(VALUES(thumbnail_hook_length), thumbnail_hook_length),
+            youtube_title_min_length = COALESCE(VALUES(youtube_title_min_length), youtube_title_min_length),
+            youtube_title_max_length = COALESCE(VALUES(youtube_title_max_length), youtube_title_max_length),
+            youtube_description_min_length = COALESCE(VALUES(youtube_description_min_length), youtube_description_min_length),
+            youtube_description_max_length = COALESCE(VALUES(youtube_description_max_length), youtube_description_max_length),
+            opening_narration_length = COALESCE(VALUES(opening_narration_length), opening_narration_length),
+            slide_narration_length = COALESCE(VALUES(slide_narration_length), slide_narration_length),
+            narration_expand_length = COALESCE(VALUES(narration_expand_length), narration_expand_length),
+            updated_at = NOW()
+    </insert>
+
+    <!-- 개별 필드 업데이트 -->
+    <update id="updateThumbnailHookLength">
+        UPDATE creator_prompts_length
+        SET thumbnail_hook_length = #{length}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateYoutubeTitleLength">
+        UPDATE creator_prompts_length
+        SET youtube_title_min_length = #{minLength},
+            youtube_title_max_length = #{maxLength},
+            updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateYoutubeDescriptionLength">
+        UPDATE creator_prompts_length
+        SET youtube_description_min_length = #{minLength},
+            youtube_description_max_length = #{maxLength},
+            updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateOpeningNarrationLength">
+        UPDATE creator_prompts_length
+        SET opening_narration_length = #{length}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateSlideNarrationLength">
+        UPDATE creator_prompts_length
+        SET slide_narration_length = #{length}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateNarrationExpandLength">
+        UPDATE creator_prompts_length
+        SET narration_expand_length = #{length}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+</mapper>

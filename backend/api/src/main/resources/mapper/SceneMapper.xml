@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aivideo.api.mapper.SceneMapper">
+
+    <resultMap id="SceneResultMap" type="com.aivideo.api.entity.Scene">
+        <id property="sceneId" column="scene_id"/>
+        <result property="videoId" column="video_id"/>
+        <result property="sceneType" column="scene_type"/>
+        <result property="sceneOrder" column="scene_order"/>
+        <result property="title" column="title"/>
+        <result property="narration" column="narration"/>
+        <result property="prompt" column="prompt"/>
+        <result property="duration" column="duration"/>
+        <result property="cameraMovement" column="camera_movement"/>
+        <result property="lightingPreset" column="lighting_preset"/>
+        <result property="framingType" column="framing_type"/>
+        <result property="transitionType" column="transition_type"/>
+        <result property="mediaUrl" column="media_url"/>
+        <result property="mediaStatus" column="media_status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <!-- v2.4.0 추가 필드 -->
+        <result property="imageUrl" column="image_url"/>
+        <result property="audioUrl" column="audio_url"/>
+        <result property="subtitleUrl" column="subtitle_url"/>
+        <result property="sceneVideoUrl" column="scene_video_url"/>
+        <result property="sceneStatus" column="scene_status"/>
+        <result property="regenerateCount" column="regenerate_count"/>
+        <result property="userFeedback" column="user_feedback"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="sceneId">
+        INSERT INTO scenes (
+            video_id, scene_type, scene_order, title, narration, prompt,
+            duration, camera_movement, lighting_preset, framing_type,
+            transition_type, media_status, scene_status, regenerate_count,
+            image_url, audio_url, subtitle_url, scene_video_url
+        )
+        VALUES (
+            #{videoId}, #{sceneType}, #{sceneOrder}, #{title}, #{narration}, #{prompt},
+            #{duration}, #{cameraMovement}, #{lightingPreset}, #{framingType},
+            #{transitionType}, #{mediaStatus}, COALESCE(#{sceneStatus}, 'PENDING'), COALESCE(#{regenerateCount}, 0),
+            #{imageUrl}, #{audioUrl}, #{subtitleUrl}, #{sceneVideoUrl}
+        )
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO scenes (
+            video_id, scene_type, scene_order, title, narration, prompt,
+            duration, camera_movement, lighting_preset, framing_type,
+            transition_type, media_status
+        )
+        VALUES
+        <foreach collection="scenes" item="scene" separator=",">
+            (
+                #{scene.videoId}, #{scene.sceneType}, #{scene.sceneOrder}, #{scene.title},
+                #{scene.narration}, #{scene.prompt}, #{scene.duration}, #{scene.cameraMovement},
+                #{scene.lightingPreset}, #{scene.framingType}, #{scene.transitionType}, #{scene.mediaStatus}
+            )
+        </foreach>
+    </insert>
+
+    <select id="findById" resultMap="SceneResultMap">
+        SELECT * FROM scenes WHERE scene_id = #{sceneId}
+    </select>
+
+    <select id="findByVideoId" resultMap="SceneResultMap">
+        SELECT * FROM scenes WHERE video_id = #{videoId}
+    </select>
+
+    <select id="findByVideoIdOrderByOrder" resultMap="SceneResultMap">
+        SELECT * FROM scenes WHERE video_id = #{videoId} ORDER BY scene_order ASC
+    </select>
+
+    <update id="updateMediaUrl">
+        UPDATE scenes
+        SET media_url = #{mediaUrl}, media_status = #{mediaStatus}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateMediaStatus">
+        UPDATE scenes
+        SET media_status = #{mediaStatus}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateDuration">
+        UPDATE scenes
+        SET duration = #{duration}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM scenes WHERE scene_id = #{sceneId}
+    </delete>
+
+    <delete id="deleteByVideoId">
+        DELETE FROM scenes WHERE video_id = #{videoId}
+    </delete>
+
+    <!-- v2.9.13: N+1 쿼리 방지용 일괄 삭제 -->
+    <delete id="deleteByVideoIdsBatch">
+        DELETE FROM scenes WHERE video_id IN
+        <foreach collection="videoIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="countByVideoId" resultType="int">
+        SELECT COUNT(*) FROM scenes WHERE video_id = #{videoId}
+    </select>
+
+    <!-- ========== v2.4.0 추가 쿼리 - 개별 씬 영상 생성 지원 ========== -->
+
+    <update id="updateImageUrl">
+        UPDATE scenes
+        SET image_url = #{imageUrl}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateAudioUrl">
+        UPDATE scenes
+        SET audio_url = #{audioUrl}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateSubtitleUrl">
+        UPDATE scenes
+        SET subtitle_url = #{subtitleUrl}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateSceneVideoUrl">
+        UPDATE scenes
+        SET scene_video_url = #{sceneVideoUrl}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateSceneStatus">
+        UPDATE scenes
+        SET scene_status = #{sceneStatus}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updateSceneMedia">
+        UPDATE scenes
+        SET image_url = #{imageUrl},
+            audio_url = #{audioUrl},
+            subtitle_url = #{subtitleUrl},
+            scene_video_url = #{sceneVideoUrl},
+            scene_status = #{sceneStatus},
+            updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="requestRegenerate">
+        UPDATE scenes
+        SET user_feedback = #{userFeedback},
+            scene_status = 'REGENERATING',
+            regenerate_count = COALESCE(regenerate_count, 0) + 1,
+            updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="updatePrompt">
+        UPDATE scenes
+        SET prompt = #{prompt}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <select id="countCompletedByVideoId" resultType="int">
+        SELECT COUNT(*) FROM scenes
+        WHERE video_id = #{videoId} AND scene_status = 'COMPLETED'
+    </select>
+
+    <!-- ========== v2.5.0 추가 쿼리 - 나레이션 편집 지원 ========== -->
+
+    <update id="updateNarration">
+        UPDATE scenes
+        SET narration = #{narration}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <!-- ========== v2.6.0 추가 쿼리 - 부분 실패 복구 ========== -->
+
+    <select id="findFailedByVideoId" resultMap="SceneResultMap">
+        SELECT * FROM scenes
+        WHERE video_id = #{videoId} AND scene_status = 'FAILED'
+        ORDER BY scene_order ASC
+    </select>
+
+    <select id="findByVideoIdAndStatus" resultMap="SceneResultMap">
+        SELECT * FROM scenes
+        WHERE video_id = #{videoId} AND scene_status = #{sceneStatus}
+        ORDER BY scene_order ASC
+    </select>
+
+    <update id="updateErrorMessage">
+        UPDATE scenes
+        SET user_feedback = #{errorMessage}, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <update id="incrementRetryCount">
+        UPDATE scenes
+        SET regenerate_count = COALESCE(regenerate_count, 0) + 1, updated_at = NOW()
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <select id="findPendingOrFailedByVideoId" resultMap="SceneResultMap">
+        SELECT * FROM scenes
+        WHERE video_id = #{videoId}
+          AND (scene_status = 'PENDING' OR scene_status = 'FAILED' OR scene_status IS NULL)
+        ORDER BY scene_order ASC
+    </select>
+</mapper>

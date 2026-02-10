@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.VideoThumbnailMapper">
+
+    <resultMap id="VideoThumbnailResultMap" type="com.aivideo.api.entity.VideoThumbnail">
+        <id property="thumbnailId" column="thumbnail_id"/>
+        <result property="styleCode" column="style_code"/>
+        <result property="styleName" column="style_name"/>
+        <result property="description" column="description"/>
+        <result property="borderEnabled" column="border_enabled"/>
+        <result property="borderColor" column="border_color"/>
+        <result property="borderWidth" column="border_width"/>
+        <result property="gradientEnabled" column="gradient_enabled"/>
+        <result property="gradientColor" column="gradient_color"/>
+        <result property="gradientHeightRatio" column="gradient_height_ratio"/>
+        <result property="gradientOpacity" column="gradient_opacity"/>
+        <result property="textLine1Color" column="text_line1_color"/>
+        <result property="textLine2Color" column="text_line2_color"/>
+        <result property="outlineColor" column="outline_color"/>
+        <result property="outlineThickness" column="outline_thickness"/>
+        <result property="shadowEnabled" column="shadow_enabled"/>
+        <result property="shadowColor" column="shadow_color"/>
+        <result property="shadowOpacity" column="shadow_opacity"/>
+        <result property="shadowOffsetX" column="shadow_offset_x"/>
+        <result property="shadowOffsetY" column="shadow_offset_y"/>
+        <result property="isDefault" column="is_default"/>
+        <result property="isActive" column="is_active"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- ID로 조회 -->
+    <select id="findById" resultMap="VideoThumbnailResultMap">
+        SELECT * FROM video_thumbnail
+        WHERE thumbnail_id = #{thumbnailId}
+    </select>
+
+    <!-- 스타일 코드로 조회 -->
+    <select id="findByCode" resultMap="VideoThumbnailResultMap">
+        SELECT * FROM video_thumbnail
+        WHERE style_code = #{styleCode}
+    </select>
+
+    <!-- 활성화된 모든 스타일 조회 -->
+    <select id="findAllActive" resultMap="VideoThumbnailResultMap">
+        SELECT * FROM video_thumbnail
+        WHERE is_active = TRUE
+        ORDER BY display_order ASC, thumbnail_id ASC
+    </select>
+
+    <!-- 기본 스타일 조회 -->
+    <select id="findDefault" resultMap="VideoThumbnailResultMap">
+        SELECT * FROM video_thumbnail
+        WHERE is_default = TRUE AND is_active = TRUE
+        LIMIT 1
+    </select>
+
+</mapper>

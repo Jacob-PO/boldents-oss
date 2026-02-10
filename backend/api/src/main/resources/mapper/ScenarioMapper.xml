@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aivideo.api.mapper.ScenarioMapper">
+
+    <resultMap id="ScenarioResultMap" type="com.aivideo.api.entity.Scenario">
+        <id property="scenarioId" column="scenario_id"/>
+        <result property="videoId" column="video_id"/>
+        <result property="scenarioJson" column="scenario_json"/>
+        <result property="openingPrompt" column="opening_prompt"/>
+        <result property="negativePrompt" column="negative_prompt"/>
+        <result property="characterBlock" column="character_block"/>
+        <result property="timedSegments" column="timed_segments"/>
+        <result property="version" column="version"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="scenarioId">
+        INSERT INTO scenarios (
+            video_id, scenario_json, opening_prompt, negative_prompt,
+            character_block, timed_segments, version
+        )
+        VALUES (
+            #{videoId}, #{scenarioJson}, #{openingPrompt}, #{negativePrompt},
+            #{characterBlock}, #{timedSegments}, #{version}
+        )
+    </insert>
+
+    <select id="findById" resultMap="ScenarioResultMap">
+        SELECT * FROM scenarios WHERE scenario_id = #{scenarioId}
+    </select>
+
+    <select id="findByVideoId" resultMap="ScenarioResultMap">
+        SELECT * FROM scenarios WHERE video_id = #{videoId} ORDER BY version DESC LIMIT 1
+    </select>
+
+    <update id="update">
+        UPDATE scenarios
+        SET scenario_json = #{scenarioJson},
+            opening_prompt = #{openingPrompt},
+            negative_prompt = #{negativePrompt},
+            character_block = #{characterBlock},
+            timed_segments = #{timedSegments},
+            version = #{version},
+            updated_at = NOW()
+        WHERE scenario_id = #{scenarioId}
+    </update>
+
+    <update id="updateVersion">
+        UPDATE scenarios
+        SET version = #{version}, updated_at = NOW()
+        WHERE scenario_id = #{scenarioId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM scenarios WHERE scenario_id = #{scenarioId}
+    </delete>
+
+    <delete id="deleteByVideoId">
+        DELETE FROM scenarios WHERE video_id = #{videoId}
+    </delete>
+
+    <!-- v2.9.13: N+1 쿼리 방지용 일괄 삭제 -->
+    <delete id="deleteByVideoIdsBatch">
+        DELETE FROM scenarios WHERE video_id IN
+        <foreach collection="videoIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

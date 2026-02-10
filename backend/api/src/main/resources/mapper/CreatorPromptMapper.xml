@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.CreatorPromptMapper">
+
+    <!--
+    Wide Table 구조 ResultMap
+    2단계 프롬프트 아키텍처 (v2.9.155)
+
+    [A] 캐릭터 정의 (4개)
+    [B] SCENARIO 세분화 (5개) - v2.9.153: scenarioJsonFormat 제거
+    [C] IMAGE 세분화 (6개)
+    [D] OPENING VIDEO 세분화 (4개)
+    [E] TTS 세분화 (2개)
+    [F] THUMBNAIL 세분화 (4개)
+    [G] NARRATION EXPAND 세분화 (3개)
+    [H] SAFETY 세분화 (2개)
+    [I] 기타 (1개)
+    [J] 메타데이터 (2개)
+
+    v2.9.155: 설정값(길이 관련)은 creator_prompts_length 테이블로 이동
+    총 34개 컬럼 (PK 제외)
+    -->
+    <resultMap id="CreatorPromptResultMap" type="com.aivideo.api.entity.CreatorPrompt">
+        <!-- PK -->
+        <id property="creatorId" column="creator_id"/>
+
+        <!-- [A] 캐릭터 정의 (4개) -->
+        <result property="identityAnchor" column="identity_anchor"/>
+        <result property="negativePromptsCharacter" column="negative_prompts_character"/>
+        <result property="styleLock" column="style_lock"/>
+        <result property="characterBlockFull" column="character_block_full"/>
+
+        <!-- [B] SCENARIO 세분화 (5개) - v2.9.153: scenarioJsonFormat 제거 (Base 템플릿에서 관리) -->
+        <result property="scenarioContentRules" column="scenario_content_rules"/>
+        <result property="scenarioVisualRules" column="scenario_visual_rules"/>
+        <result property="scenarioForbidden" column="scenario_forbidden"/>
+        <result property="scenarioChecklist" column="scenario_checklist"/>
+        <result property="scenarioUserTemplate" column="scenario_user_template"/>
+
+        <!-- [C] IMAGE 세분화 (6개) -->
+        <result property="imagePhotographyRules" column="image_photography_rules"/>
+        <result property="imageCompositionRules" column="image_composition_rules"/>
+        <result property="imageLightingRules" column="image_lighting_rules"/>
+        <result property="imageBackgroundRules" column="image_background_rules"/>
+        <result property="imageMandatoryElements" column="image_mandatory_elements"/>
+        <result property="imageNegative" column="image_negative"/>
+
+        <!-- [D] OPENING VIDEO 세분화 (4개) -->
+        <result property="openingTimelineStructure" column="opening_timeline_structure"/>
+        <result property="openingCameraRules" column="opening_camera_rules"/>
+        <result property="openingAudioDesign" column="opening_audio_design"/>
+        <result property="openingForbidden" column="opening_forbidden"/>
+
+        <!-- [E] TTS 세분화 (2개) -->
+        <result property="ttsVoiceName" column="tts_voice_name"/>
+        <result property="ttsPersona" column="tts_persona"/>
+
+        <!-- [F] THUMBNAIL 세분화 (4개) -->
+        <result property="thumbnailStylePrompt" column="thumbnail_style_prompt"/>
+        <result property="thumbnailComposition" column="thumbnail_composition"/>
+        <result property="thumbnailTextRules" column="thumbnail_text_rules"/>
+        <result property="thumbnailMetadataRules" column="thumbnail_metadata_rules"/>
+
+        <!-- [G] NARRATION EXPAND 세분화 (3개) -->
+        <result property="narrationContinuityRules" column="narration_continuity_rules"/>
+        <result property="narrationVoiceRules" column="narration_voice_rules"/>
+        <result property="narrationExpandRules" column="narration_expand_rules"/>
+
+        <!-- [H] SAFETY 세분화 (2개) -->
+        <result property="safetyModificationRules" column="safety_modification_rules"/>
+        <result property="safetyFallbackPrompt" column="safety_fallback_prompt"/>
+
+        <!-- [I] 기타 (1개) -->
+        <result property="referenceImageAnalysis" column="reference_image_analysis"/>
+
+        <!-- v2.9.155: 설정값(길이 관련)은 creator_prompts_length 테이블로 이동 -->
+
+        <!-- [J] 메타데이터 (2개) -->
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 크리에이터 ID로 프롬프트 조회 (단일 row) -->
+    <select id="findByCreatorId" resultMap="CreatorPromptResultMap">
+        SELECT * FROM creator_prompts
+        WHERE creator_id = #{creatorId}
+    </select>
+
+    <!-- 프롬프트 UPSERT - v2.9.152: 세분화 컬럼 구조 -->
+    <insert id="upsert" parameterType="com.aivideo.api.entity.CreatorPrompt">
+        INSERT INTO creator_prompts (
+            creator_id,
+            <!-- [A] 캐릭터 정의 -->
+            identity_anchor, negative_prompts_character, style_lock, character_block_full,
+            <!-- [B] SCENARIO (v2.9.153: scenario_json_format 제거) -->
+            scenario_content_rules, scenario_visual_rules,
+            scenario_forbidden, scenario_checklist, scenario_user_template,
+            <!-- [C] IMAGE -->
+            image_photography_rules, image_composition_rules, image_lighting_rules,
+            image_background_rules, image_mandatory_elements, image_negative,
+            <!-- [D] OPENING VIDEO -->
+            opening_timeline_structure, opening_camera_rules, opening_audio_design, opening_forbidden,
+            <!-- [E] TTS -->
+            tts_voice_name, tts_persona,
+            <!-- [F] THUMBNAIL -->
+            thumbnail_style_prompt, thumbnail_composition, thumbnail_text_rules, thumbnail_metadata_rules,
+            <!-- [G] NARRATION EXPAND -->
+            narration_continuity_rules, narration_voice_rules, narration_expand_rules,
+            <!-- [H] SAFETY -->
+            safety_modification_rules, safety_fallback_prompt,
+            <!-- [I] 기타 -->
+            reference_image_analysis
+            <!-- v2.9.155: 설정값(길이 관련)은 creator_prompts_length 테이블로 이동 -->
+        ) VALUES (
+            #{creatorId},
+            <!-- [A] 캐릭터 정의 -->
+            #{identityAnchor}, #{negativePromptsCharacter}, #{styleLock}, #{characterBlockFull},
+            <!-- [B] SCENARIO (v2.9.153: scenarioJsonFormat 제거) -->
+            #{scenarioContentRules}, #{scenarioVisualRules},
+            #{scenarioForbidden}, #{scenarioChecklist}, #{scenarioUserTemplate},
+            <!-- [C] IMAGE -->
+            #{imagePhotographyRules}, #{imageCompositionRules}, #{imageLightingRules},
+            #{imageBackgroundRules}, #{imageMandatoryElements}, #{imageNegative},
+            <!-- [D] OPENING VIDEO -->
+            #{openingTimelineStructure}, #{openingCameraRules}, #{openingAudioDesign}, #{openingForbidden},
+            <!-- [E] TTS -->
+            #{ttsVoiceName}, #{ttsPersona},
+            <!-- [F] THUMBNAIL -->
+            #{thumbnailStylePrompt}, #{thumbnailComposition}, #{thumbnailTextRules}, #{thumbnailMetadataRules},
+            <!-- [G] NARRATION EXPAND -->
+            #{narrationContinuityRules}, #{narrationVoiceRules}, #{narrationExpandRules},
+            <!-- [H] SAFETY -->
+            #{safetyModificationRules}, #{safetyFallbackPrompt},
+            <!-- [I] 기타 -->
+            #{referenceImageAnalysis}
+            <!-- v2.9.155: 설정값(길이 관련)은 creator_prompts_length 테이블로 이동 -->
+        )
+        ON DUPLICATE KEY UPDATE
+            <!-- [A] 캐릭터 정의 -->
+            identity_anchor = COALESCE(VALUES(identity_anchor), identity_anchor),
+            negative_prompts_character = COALESCE(VALUES(negative_prompts_character), negative_prompts_character),
+            style_lock = COALESCE(VALUES(style_lock), style_lock),
+            character_block_full = COALESCE(VALUES(character_block_full), character_block_full),
+            <!-- [B] SCENARIO (v2.9.153: scenario_json_format 제거) -->
+            scenario_content_rules = COALESCE(VALUES(scenario_content_rules), scenario_content_rules),
+            scenario_visual_rules = COALESCE(VALUES(scenario_visual_rules), scenario_visual_rules),
+            scenario_forbidden = COALESCE(VALUES(scenario_forbidden), scenario_forbidden),
+            scenario_checklist = COALESCE(VALUES(scenario_checklist), scenario_checklist),
+            scenario_user_template = COALESCE(VALUES(scenario_user_template), scenario_user_template),
+            <!-- [C] IMAGE -->
+            image_photography_rules = COALESCE(VALUES(image_photography_rules), image_photography_rules),
+            image_composition_rules = COALESCE(VALUES(image_composition_rules), image_composition_rules),
+            image_lighting_rules = COALESCE(VALUES(image_lighting_rules), image_lighting_rules),
+            image_background_rules = COALESCE(VALUES(image_background_rules), image_background_rules),
+            image_mandatory_elements = COALESCE(VALUES(image_mandatory_elements), image_mandatory_elements),
+            image_negative = COALESCE(VALUES(image_negative), image_negative),
+            <!-- [D] OPENING VIDEO -->
+            opening_timeline_structure = COALESCE(VALUES(opening_timeline_structure), opening_timeline_structure),
+            opening_camera_rules = COALESCE(VALUES(opening_camera_rules), opening_camera_rules),
+            opening_audio_design = COALESCE(VALUES(opening_audio_design), opening_audio_design),
+            opening_forbidden = COALESCE(VALUES(opening_forbidden), opening_forbidden),
+            <!-- [E] TTS -->
+            tts_voice_name = COALESCE(VALUES(tts_voice_name), tts_voice_name),
+            tts_persona = COALESCE(VALUES(tts_persona), tts_persona),
+            <!-- [F] THUMBNAIL -->
+            thumbnail_style_prompt = COALESCE(VALUES(thumbnail_style_prompt), thumbnail_style_prompt),
+            thumbnail_composition = COALESCE(VALUES(thumbnail_composition), thumbnail_composition),
+            thumbnail_text_rules = COALESCE(VALUES(thumbnail_text_rules), thumbnail_text_rules),
+            thumbnail_metadata_rules = COALESCE(VALUES(thumbnail_metadata_rules), thumbnail_metadata_rules),
+            <!-- [G] NARRATION EXPAND -->
+            narration_continuity_rules = COALESCE(VALUES(narration_continuity_rules), narration_continuity_rules),
+            narration_voice_rules = COALESCE(VALUES(narration_voice_rules), narration_voice_rules),
+            narration_expand_rules = COALESCE(VALUES(narration_expand_rules), narration_expand_rules),
+            <!-- [H] SAFETY -->
+            safety_modification_rules = COALESCE(VALUES(safety_modification_rules), safety_modification_rules),
+            safety_fallback_prompt = COALESCE(VALUES(safety_fallback_prompt), safety_fallback_prompt),
+            <!-- [I] 기타 -->
+            reference_image_analysis = COALESCE(VALUES(reference_image_analysis), reference_image_analysis),
+            <!-- v2.9.155: 설정값(길이 관련)은 creator_prompts_length 테이블로 이동 -->
+            updated_at = NOW()
+    </insert>
+
+    <!-- ===== 개별 프롬프트 업데이트 ===== -->
+
+    <!-- [A] 캐릭터 정의 -->
+    <update id="updateIdentityAnchor">
+        UPDATE creator_prompts SET identity_anchor = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateNegativePromptsCharacter">
+        UPDATE creator_prompts SET negative_prompts_character = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateStyleLock">
+        UPDATE creator_prompts SET style_lock = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateCharacterBlockFull">
+        UPDATE creator_prompts SET character_block_full = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [B] SCENARIO (v2.9.152: updateScenarioRoleDefinition 제거) -->
+    <update id="updateScenarioContentRules">
+        UPDATE creator_prompts SET scenario_content_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateScenarioVisualRules">
+        UPDATE creator_prompts SET scenario_visual_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateScenarioForbidden">
+        UPDATE creator_prompts SET scenario_forbidden = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- v2.9.153: updateScenarioJsonFormat 제거 (Base 템플릿에서 관리) -->
+
+    <update id="updateScenarioChecklist">
+        UPDATE creator_prompts SET scenario_checklist = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateScenarioUserTemplate">
+        UPDATE creator_prompts SET scenario_user_template = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [C] IMAGE -->
+    <update id="updateImagePhotographyRules">
+        UPDATE creator_prompts SET image_photography_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateImageCompositionRules">
+        UPDATE creator_prompts SET image_composition_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateImageLightingRules">
+        UPDATE creator_prompts SET image_lighting_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateImageBackgroundRules">
+        UPDATE creator_prompts SET image_background_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateImageMandatoryElements">
+        UPDATE creator_prompts SET image_mandatory_elements = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateImageNegative">
+        UPDATE creator_prompts SET image_negative = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [D] OPENING VIDEO -->
+    <update id="updateOpeningTimelineStructure">
+        UPDATE creator_prompts SET opening_timeline_structure = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateOpeningCameraRules">
+        UPDATE creator_prompts SET opening_camera_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateOpeningAudioDesign">
+        UPDATE creator_prompts SET opening_audio_design = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateOpeningForbidden">
+        UPDATE creator_prompts SET opening_forbidden = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [E] TTS -->
+    <update id="updateTtsVoiceName">
+        UPDATE creator_prompts SET tts_voice_name = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateTtsPersona">
+        UPDATE creator_prompts SET tts_persona = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [F] THUMBNAIL -->
+    <update id="updateThumbnailStylePrompt">
+        UPDATE creator_prompts SET thumbnail_style_prompt = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateThumbnailComposition">
+        UPDATE creator_prompts SET thumbnail_composition = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateThumbnailTextRules">
+        UPDATE creator_prompts SET thumbnail_text_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateThumbnailMetadataRules">
+        UPDATE creator_prompts SET thumbnail_metadata_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [G] NARRATION EXPAND -->
+    <update id="updateNarrationContinuityRules">
+        UPDATE creator_prompts SET narration_continuity_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateNarrationVoiceRules">
+        UPDATE creator_prompts SET narration_voice_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateNarrationExpandRules">
+        UPDATE creator_prompts SET narration_expand_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [H] SAFETY -->
+    <update id="updateSafetyModificationRules">
+        UPDATE creator_prompts SET safety_modification_rules = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <update id="updateSafetyFallbackPrompt">
+        UPDATE creator_prompts SET safety_fallback_prompt = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+    <!-- [I] 기타 -->
+    <update id="updateReferenceImageAnalysis">
+        UPDATE creator_prompts SET reference_image_analysis = #{content}, updated_at = NOW()
+        WHERE creator_id = #{creatorId}
+    </update>
+
+</mapper>

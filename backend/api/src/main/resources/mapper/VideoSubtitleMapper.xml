@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.VideoSubtitleMapper">
+
+    <resultMap id="VideoSubtitleResultMap" type="com.aivideo.api.entity.VideoSubtitle">
+        <id property="videoSubtitleId" column="video_subtitle_id"/>
+        <result property="subtitleCode" column="subtitle_code"/>
+        <result property="subtitleName" column="subtitle_name"/>
+        <result property="subtitleNameEn" column="subtitle_name_en"/>
+        <result property="description" column="description"/>
+        <result property="fontName" column="font_name"/>
+        <result property="fontSize" column="font_size"/>
+        <result property="fontSizeVertical" column="font_size_vertical"/>
+        <result property="fontSizeEmotion" column="font_size_emotion"/>
+        <result property="fontSizeEmotionVertical" column="font_size_emotion_vertical"/>
+        <result property="bold" column="bold"/>
+        <result property="spacing" column="spacing"/>
+        <result property="primaryColour" column="primary_colour"/>
+        <result property="secondaryColour" column="secondary_colour"/>
+        <result property="outlineColour" column="outline_colour"/>
+        <result property="backColour" column="back_colour"/>
+        <result property="borderStyle" column="border_style"/>
+        <result property="outline" column="outline"/>
+        <result property="shadow" column="shadow"/>
+        <result property="alignment" column="alignment"/>
+        <result property="marginL" column="margin_l"/>
+        <result property="marginR" column="margin_r"/>
+        <result property="marginV" column="margin_v"/>
+        <result property="marginVVertical" column="margin_v_vertical"/>
+        <result property="emotionPrimaryColour" column="emotion_primary_colour"/>
+        <result property="isDefault" column="is_default"/>
+        <result property="isActive" column="is_active"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 자막 템플릿 ID로 조회 -->
+    <select id="findById" resultMap="VideoSubtitleResultMap">
+        SELECT * FROM video_subtitle
+        WHERE video_subtitle_id = #{videoSubtitleId}
+    </select>
+
+    <!-- 자막 템플릿 코드로 조회 -->
+    <select id="findByCode" resultMap="VideoSubtitleResultMap">
+        SELECT * FROM video_subtitle
+        WHERE subtitle_code = #{subtitleCode}
+    </select>
+
+    <!-- 활성화된 모든 자막 템플릿 조회 -->
+    <select id="findAllActive" resultMap="VideoSubtitleResultMap">
+        SELECT * FROM video_subtitle
+        WHERE is_active = TRUE
+        ORDER BY display_order ASC, video_subtitle_id ASC
+    </select>
+
+    <!-- 기본 자막 템플릿 조회 -->
+    <select id="findDefault" resultMap="VideoSubtitleResultMap">
+        SELECT * FROM video_subtitle
+        WHERE is_default = TRUE AND is_active = TRUE
+        LIMIT 1
+    </select>
+
+</mapper>

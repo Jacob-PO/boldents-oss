@@ -1,0 +1,49 @@
+description = 'aivideo-api'
+version = '0.0.1-SNAPSHOT'
+
+// jjwt-gson 전체 제외 (google-cloud-vertexai가 0.11.5를 가져와서 0.12.3과 충돌)
+configurations.all {
+    exclude group: 'io.jsonwebtoken', module: 'jjwt-gson'
+}
+
+dependencies {
+    implementation project(':common')
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JWT (버전 통일 필수 - jjwt-jackson 사용)
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.2.2'
+
+    // WebClient for external API calls
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // FFmpeg wrapper for video processing
+    implementation 'net.bramp.ffmpeg:ffmpeg:0.8.0'
+
+    // Google AI (Gemini)
+    implementation 'com.google.cloud:google-cloud-vertexai:1.2.0'
+
+    // AWS S3 SDK
+    implementation platform('software.amazon.awssdk:bom:2.24.0')
+    implementation 'software.amazon.awssdk:s3'
+
+    // v2.9.11: Caffeine 캐시 (TTL 지원)
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.aivideo.api.ApiApplication'
+        )
+    }
+}

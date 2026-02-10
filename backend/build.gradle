@@ -1,0 +1,112 @@
+buildscript {
+	repositories {
+		mavenCentral()
+		google()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:3.2.2")
+		classpath("io.spring.gradle:dependency-management-plugin:1.0.15.RELEASE")
+	}
+}
+
+allprojects {
+	apply plugin: 'java'
+	apply plugin: 'idea'
+
+	repositories {
+		mavenCentral()
+		google()
+	}
+
+	idea {
+		module {
+			inheritOutputDirs = false
+			outputDir = file("$buildDir/classes/main/")
+		}
+	}
+}
+
+subprojects {
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
+
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-web:3.2.2'
+		implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+		// Lombok
+		compileOnly 'org.projectlombok:lombok:1.18.34'
+		annotationProcessor 'org.projectlombok:lombok:1.18.34'
+		testCompileOnly 'org.projectlombok:lombok:1.18.34'
+		testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+		// Log4j2
+		implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+
+		// DB - MyBatis + MariaDB/PostgreSQL
+		implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+		implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.3'
+		implementation 'org.postgresql:postgresql:42.7.2'
+		implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+		// JWT
+		runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+		implementation 'io.jsonwebtoken:jjwt-gson:0.11.5'
+		implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+
+		// Google AI APIs (Gemini, Veo, Imagen)
+		implementation 'com.google.cloud:google-cloud-aiplatform:3.35.0'
+		implementation 'com.google.cloud:google-cloud-vertexai:1.1.0'
+
+		// Google Cloud Storage (for media files)
+		implementation 'com.google.cloud:google-cloud-storage:2.30.1'
+
+		// Google Cloud Text-to-Speech
+		implementation 'com.google.cloud:google-cloud-texttospeech:2.35.0'
+
+		// HTTP Client
+		implementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
+
+		// JSON
+		implementation 'com.google.code.gson:gson:2.10.1'
+		implementation 'org.apache.commons:commons-text:1.10.0'
+
+		// AWS S3 (for media storage alternative)
+		implementation 'com.amazonaws:aws-java-sdk-s3:1.12.261'
+	}
+
+	test {
+		useJUnitPlatform()
+	}
+
+	configurations {
+		all {
+			exclude group: 'commons-logging', module: 'commons-logging'
+		}
+	}
+
+	tasks.withType(JavaCompile) {
+		options.encoding = 'UTF-8'
+	}
+
+	if (!project.hasProperty('profile')) {
+		ext.profile = 'local'
+	}
+
+	task initSourceFolders {
+		sourceSets*.java.srcDirs*.each {
+			if(!it.exists()) {
+				it.mkdirs()
+			}
+		}
+
+		sourceSets*.resources.srcDirs*.each {
+			if(!it.exists()) {
+				it.mkdirs()
+			}
+		}
+	}
+}

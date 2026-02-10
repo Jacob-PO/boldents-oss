@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aivideo.api.mapper.VideoFormatMapper">
+
+    <resultMap id="VideoFormatResultMap" type="com.aivideo.api.entity.VideoFormat">
+        <id property="formatId" column="format_id"/>
+        <result property="formatCode" column="format_code"/>
+        <result property="formatName" column="format_name"/>
+        <result property="formatNameEn" column="format_name_en"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="aspectRatio" column="aspect_ratio"/>
+        <result property="icon" column="icon"/>
+        <result property="description" column="description"/>
+        <result property="platform" column="platform"/>
+        <result property="isDefault" column="is_default"/>
+        <result property="isActive" column="is_active"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 포맷 ID로 조회 -->
+    <select id="findById" resultMap="VideoFormatResultMap">
+        SELECT * FROM video_formats
+        WHERE format_id = #{formatId}
+    </select>
+
+    <!-- 포맷 코드로 조회 -->
+    <select id="findByCode" resultMap="VideoFormatResultMap">
+        SELECT * FROM video_formats
+        WHERE format_code = #{formatCode}
+    </select>
+
+    <!-- 활성화된 모든 포맷 조회 -->
+    <select id="findAllActive" resultMap="VideoFormatResultMap">
+        SELECT * FROM video_formats
+        WHERE is_active = TRUE
+        ORDER BY display_order ASC, format_id ASC
+    </select>
+
+    <!-- 기본 포맷 조회 -->
+    <select id="findDefault" resultMap="VideoFormatResultMap">
+        SELECT * FROM video_formats
+        WHERE is_default = TRUE AND is_active = TRUE
+        LIMIT 1
+    </select>
+
+</mapper>

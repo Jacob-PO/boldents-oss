@@ -1,0 +1,659 @@
+@import "tailwindcss";
+
+/* ========================================
+ * AI Video Global Styles
+ * 2026 UIUX 트렌드 반영
+ * - OKLCH 컬러 시스템
+ * - Glassmorphism
+ * - SUIT Variable Font
+ * ======================================== */
+
+/* SUIT Variable Font - Single file for all weights (100-900) */
+@font-face {
+  font-family: 'SUIT Variable';
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.woff2') format('woff2-variations');
+}
+
+/* ========================================
+ * CSS Variables - Black & White Design
+ * 2026 UIUX 트렌드: 모바일 퍼스트, 미니멀 B&W
+ * ======================================== */
+:root {
+  /* Color Scheme - Light Mode Only */
+  color-scheme: light;
+
+  /* Pure Black & White Palette (No Color Hue) */
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  /* Grayscale - Light Mode */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+  --color-gray-950: #0a0a0a;
+
+  /* Semantic Colors - Light Mode */
+  --color-background: var(--color-white);
+  --color-background-secondary: var(--color-gray-50);
+  --color-background-tertiary: var(--color-gray-100);
+  --color-foreground: var(--color-gray-900);
+  --color-foreground-secondary: var(--color-gray-600);
+  --color-foreground-muted: var(--color-gray-500);
+  --color-border: var(--color-gray-200);
+  --color-border-subtle: var(--color-gray-100);
+
+  /* Primary = Black (for buttons, emphasis) */
+  --color-primary: var(--color-black);
+  --color-primary-hover: var(--color-gray-800);
+  --color-primary-foreground: var(--color-white);
+
+  /* Status Colors (minimal - grayscale based) */
+  --color-success: var(--color-gray-700);
+  --color-warning: var(--color-gray-600);
+  --color-error: var(--color-gray-900);
+
+  /* Glassmorphism - Depth Layers (2026 Apple Liquid Glass) */
+  --glass-background: rgba(255, 255, 255, 0.85);
+  --glass-background-hover: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+
+  /* Depth Layer Tokens */
+  --glass-depth-1-bg: rgba(255, 255, 255, 0.6);
+  --glass-depth-1-blur: 8px;
+  --glass-depth-1-border: rgba(0, 0, 0, 0.03);
+  --glass-depth-2-bg: rgba(255, 255, 255, 0.75);
+  --glass-depth-2-blur: 16px;
+  --glass-depth-2-border: rgba(0, 0, 0, 0.05);
+  --glass-depth-3-bg: rgba(255, 255, 255, 0.9);
+  --glass-depth-3-blur: 24px;
+  --glass-depth-3-border: rgba(0, 0, 0, 0.08);
+
+  /* Typography - Single Variable Font */
+  --font-sans: 'SUIT Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* Border Radius - Mobile Friendly (Larger touch targets) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows - Subtle for B&W design */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 8px -1px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 8px 16px -2px rgb(0 0 0 / 0.08);
+  --shadow-xl: 0 16px 32px -4px rgb(0 0 0 / 0.1);
+
+  /* Animation - 2026 Microinteraction Standard: 200-500ms */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  --transition-micro: 200ms cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Mobile Safe Area */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+
+  /* Mobile Bottom Nav Height */
+  --bottom-nav-height: 64px;
+}
+
+/* ========================================
+ * Dark Mode - DISABLED (Fixed Light Theme)
+ * 블랙앤화이트 라이트 모드만 사용
+ * ======================================== */
+
+/* ========================================
+ * Tailwind v4 Theme Configuration - B&W
+ * ======================================== */
+@theme inline {
+  /* Font Family */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Colors */
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+
+  /* Primary (Black/White) */
+  --color-primary: var(--color-primary);
+
+  /* Gray Scale */
+  --color-gray-50: var(--color-gray-50);
+  --color-gray-100: var(--color-gray-100);
+  --color-gray-200: var(--color-gray-200);
+  --color-gray-300: var(--color-gray-300);
+  --color-gray-400: var(--color-gray-400);
+  --color-gray-500: var(--color-gray-500);
+  --color-gray-600: var(--color-gray-600);
+  --color-gray-700: var(--color-gray-700);
+  --color-gray-800: var(--color-gray-800);
+  --color-gray-900: var(--color-gray-900);
+  --color-gray-950: var(--color-gray-950);
+
+  /* Semantic - Grayscale Based */
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+}
+
+/* ========================================
+ * Base Styles
+ * ======================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-feature-settings: 'ss01' on, 'ss02' on;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  /* v2.9.10: 모바일 바운스 스크롤 방지 */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Focus visible for accessibility - WCAG 2.2 Enhanced */
+:focus-visible {
+  outline: 2px solid var(--color-gray-900);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Keyboard-only focus ring (not on click) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Selection - B&W */
+::selection {
+  background: var(--color-gray-900);
+  color: var(--color-white);
+}
+
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ========================================
+ * Utility Classes
+ * ======================================== */
+
+/* Glassmorphism */
+.glass {
+  background: var(--glass-background);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass:hover {
+  background: var(--glass-background-hover);
+}
+
+.glass-sm {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-lg {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-xl {
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+/* Glassmorphism Depth Layers (2026 Apple Liquid Glass) */
+.glass-depth-1 {
+  background: var(--glass-depth-1-bg);
+  backdrop-filter: blur(var(--glass-depth-1-blur));
+  -webkit-backdrop-filter: blur(var(--glass-depth-1-blur));
+  border: 1px solid var(--glass-depth-1-border);
+}
+
+.glass-depth-2 {
+  background: var(--glass-depth-2-bg);
+  backdrop-filter: blur(var(--glass-depth-2-blur));
+  -webkit-backdrop-filter: blur(var(--glass-depth-2-blur));
+  border: 1px solid var(--glass-depth-2-border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.glass-depth-3 {
+  background: var(--glass-depth-3-bg);
+  backdrop-filter: blur(var(--glass-depth-3-blur));
+  -webkit-backdrop-filter: blur(var(--glass-depth-3-blur));
+  border: 1px solid var(--glass-depth-3-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Text Gradient - B&W */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-gray-900), var(--color-gray-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-subtle {
+  background: linear-gradient(135deg, var(--color-foreground), var(--color-foreground-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Bento Grid */
+.bento-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+.bento-item {
+  background: var(--glass-background);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--glass-border);
+  padding: 1.5rem;
+  transition: transform var(--transition-normal) var(--ease-smooth),
+              box-shadow var(--transition-normal) var(--ease-smooth);
+}
+
+.bento-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 25%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Hover Lift Effect */
+.hover-lift {
+  transition: transform var(--transition-normal) var(--ease-smooth),
+              box-shadow var(--transition-normal) var(--ease-smooth);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Gradient Border - B&W */
+.gradient-border {
+  position: relative;
+  background: var(--color-background);
+  border-radius: var(--radius-xl);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--color-gray-400), var(--color-gray-600));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Animated Gradient Background - B&W */
+.animated-gradient {
+  background: linear-gradient(
+    -45deg,
+    var(--color-gray-200),
+    var(--color-gray-400),
+    var(--color-gray-300),
+    var(--color-gray-500)
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Shimmer Animation for Progress Bars */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Scale In Animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar - B&W */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-full);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+
+/* ========================================
+ * Mobile-First Utilities (2026 Trend)
+ * ======================================== */
+
+/* Mobile Safe Area Padding */
+.safe-area-top {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: var(--safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* Mobile Touch Target (WCAG 2.2: min 44x44px) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Mobile Bottom Navigation - v2.9.10: 스크롤 독립성 강화 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-height);
+  background: var(--glass-background);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: var(--safe-area-inset-bottom);
+  z-index: 50;
+  /* v2.9.10: 레이아웃 격리 - 스크롤과 완전 분리 */
+  contain: layout style;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Content padding for bottom nav - 모바일에서만 적용 */
+@media (max-width: 767px) {
+  .has-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-inset-bottom));
+  }
+}
+
+/* Mobile Full Screen */
+.mobile-full {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* Hide on mobile, show on desktop */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Show on mobile only */
+@media (min-width: 769px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Touch-friendly button press effect */
+@media (hover: none) and (pointer: coarse) {
+  .touch-press:active {
+    transform: scale(0.97);
+    transition: transform 100ms ease;
+  }
+}
+
+/* Haptic-style feedback for buttons */
+.btn-haptic {
+  transition: transform var(--transition-fast) var(--ease-smooth);
+}
+
+.btn-haptic:active {
+  transform: scale(0.96);
+}
+
+/* Pull-to-refresh indicator area */
+.pull-refresh-area {
+  overscroll-behavior-y: contain;
+}
+
+/* iOS-style momentum scrolling */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ========================================
+ * 2026 Typography Utilities
+ * ======================================== */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* ========================================
+ * 2026 Micro-Interactions
+ * ======================================== */
+
+/* Press scale effect - tactile feedback */
+.press-scale {
+  transition: transform var(--transition-micro);
+}
+
+.press-scale:active {
+  transform: scale(0.97);
+}
+
+/* Hover lift with shadow */
+.hover-lift-sm {
+  transition: transform var(--transition-normal) var(--ease-out-expo),
+              box-shadow var(--transition-normal) var(--ease-out-expo);
+}
+
+.hover-lift-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ========================================
+ * Bottom Nav Active Indicator (2026 Trend)
+ * ======================================== */
+.nav-item-active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-black);
+  transition: opacity var(--transition-normal) var(--ease-smooth);
+}
+
+/* ========================================
+ * Scrollbar Hide - 모바일 가로 스크롤 최적화
+ * ======================================== */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Snap scroll - 터치 친화적 스냅 */
+.snap-x {
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
